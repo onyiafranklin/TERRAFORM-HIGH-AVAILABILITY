@@ -13,35 +13,50 @@ provider "aws" {
   region  = "us-east-1"
 }
 
+// Availability zones
 data "aws_availability_zones" "azs" {
 	state = "available"
 }
 
-resource "aws_vpc" "main" {
+// VPC and IGW
+resource "aws_vpc" "vpc" {
 	cidr_block = var.vpc_cidr
 	enable_dns_hostnames = true
 }
 
-resource "aws_internet_gateway" "main_gateway" { }
+resource "aws_internet_gateway" "igw" { }
 
-resource "aws_internet_gateway_attachment" "main_gw_attachment" {
-	vpc_id = aws_vpc.main.id
-	internet_gateway_id = aws_internet_gateway.main_gateway.id
+resource "aws_internet_gateway_attachment" "igw_attachment" {
+	vpc_id = aws_vpc.vpc.id
+	internet_gateway_id = aws_internet_gateway.igw.id
 }
 
 // Subnets
 
 resource "aws_subnet" "public_subnet_1" {
-	cidr_block = var.public_subnet_cidr
-	vpc_id = aws_vpc.main.id
+	cidr_block = var.public_subnet_1_cidr
+	vpc_id = aws_vpc.vpc.id
 	map_public_ip_on_launch = true
 	availability_zone = data.aws_availability_zones.azs.names[0]
 }
 
+resource "aws_subnet" "public_subnet_2"{
+	cidr_block = var.public_subnet_2_cidr
+	vpc_id =aws_vpc.vpc.id
+	map_public_ip_on_launch = true
+	availability_zone = data.aws_availability_zones.azs.names[1]
+}
+
 resource "aws_subnet" "private_subnet_1" {
-	cidr_block = var.private_subnet_cidr
-	vpc_id = aws_vpc.main.id
-	availability_zone = data.aws_availability_zones.azs.names[5]
+	cidr_block = var.private_subnet_1_cidr
+	vpc_id = aws_vpc.vpc.id
+	availability_zone = data.aws_availability_zones.azs.names[0]
+}
+
+resource "aws_subnet" "private_subnet_2" {
+	cidr_block = var.private_subnet_2_cidr
+	vpc_id = aws_vpc.vpc.id
+	availability_zone = data.aws_availability_zones.azs.names[1]
 }
 
 
@@ -50,10 +65,26 @@ resource "aws_subnet" "private_subnet_1" {
 // Outputs
 
 output "igw_id" {
-	value = aws_internet_gateway.main_gateway.id
+	value = aws_internet_gateway.igw.id
 }
 
 output "vpc_id" {
-	value = aws_vpc.main.id
+	value = aws_vpc.vpc.id
+}
+
+output "public_subnet_1"{
+	value = aws_subnet.public_subnet_1.id
+}
+
+output "public_subnet_2"{
+	value = aws_subnet.public_subnet_2.id
+}
+
+output "private_subnet_1"{
+	value = aws_subnet.private_subnet_1.id
+}
+
+output "private_subnet_2"{
+	value = aws_subnet.private_subnet_2.id
 }
 
